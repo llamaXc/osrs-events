@@ -1,7 +1,7 @@
 # OSRSEvents
 Easily export your game data to an api of your choice. View the supported endpoints below and get started today.
 
-##Security & Privacy
+## Security & Privacy
 This plugin is setup by the user. You choose where your data goes, and have varying levels of configuration.
 #### Outline of data being shared
 - `Loot stacks when killing npcs`: Npc info and item information
