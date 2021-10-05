@@ -33,7 +33,7 @@ This plugin is setup by the user. You choose where your data goes, and have vary
  - TODO: Possible events: level ups, quest completes, login states, map positions.
  - TODO: more events coming soon. Make PR for any event you want to see.
 ## Event Payload Structure
-####Header Fields
+#### Header Fields
 - `runelite-token` an optional header token to represent a user.
 
 #### Body Fields
