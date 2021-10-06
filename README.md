@@ -1,7 +1,7 @@
 # OSRSEvents
 Easily export your game data to an api of your choice. View the supported endpoints below and get started today.
 
-##Security & Privacy
+## Security & Privacy
 This plugin is setup by the user. You choose where your data goes, and have varying levels of configuration.
 #### Outline of data being shared
 - `Loot stacks when killing npcs`: Npc info and item information
@@ -10,7 +10,10 @@ This plugin is setup by the user. You choose where your data goes, and have vary
 
 ## How to addon/extend this plugin
 1. Think of an event you want to export
-2. Create a new class in com.osrsevents
+2. Create a new class in com.osrsevents that implments the Sendable interface
+3. Define the fields you want to send (See NpcKillNotification.java for an example)
+4. In the EventPlugin.java, subscribe to some RuneLite event or detect a change in the gameTick() loop.
+5. When ready, instante the new Notification.java class you made, and call api.send(MY_NOTIFICATION)
 
 ## Config Options Panel : In Runelite
 #### Input Boxes
@@ -30,7 +33,7 @@ This plugin is setup by the user. You choose where your data goes, and have vary
  - TODO: Possible events: level ups, quest completes, login states, map positions.
  - TODO: more events coming soon. Make PR for any event you want to see.
 ## Event Payload Structure
-####Header Fields
+#### Header Fields
 - `runelite-token` an optional header token to represent a user.
 
 #### Body Fields
