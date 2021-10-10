@@ -1,6 +1,7 @@
 package com.osrsevents.notifications;
 
 import com.osrsevents.ApiManager;
+import com.osrsevents.interfaces.Sendable;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.client.events.NpcLootReceived;

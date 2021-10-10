@@ -2,6 +2,7 @@ package com.osrsevents.pojos;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.api.coords.WorldPoint;
 
 public class PlayerInfo {
     @Getter
@@ -12,9 +13,14 @@ public class PlayerInfo {
     @Setter
     private int combatLevel;
 
-    public PlayerInfo(String username, int combatLevel){
+    @Getter
+    @Setter
+    private WorldPoint position;
+
+    public PlayerInfo(String username, int combatLevel, WorldPoint pos){
         this.username = username;
         this.combatLevel = combatLevel;
+        this.position = pos;
     }
 
 }

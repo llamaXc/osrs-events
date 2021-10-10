@@ -1,0 +1,32 @@
+package com.osrsevents.notifications;
+
+import com.osrsevents.ApiManager;
+import com.osrsevents.interfaces.Sendable;
+import lombok.Getter;
+import lombok.Setter;
+import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.Item;
+
+import java.util.Map;
+
+public class EquipSlotsNotification implements Sendable {
+    private final static String API_ENDPOINT = ApiManager.EQUIPPED_ITEMS_ENDPOINT;
+
+    public EquipSlotsNotification(Map<EquipmentInventorySlot, Item> equippedItems){
+        setEquippedItems(equippedItems);
+    }
+
+    @Setter
+    @Getter
+    private Map<EquipmentInventorySlot, Item> equippedItems;
+
+    @Override
+    public EventWrapper getEventWrapper() {
+        return new EventWrapper(this);
+    }
+
+    @Override
+    public String getApiEndpoint() {
+        return API_ENDPOINT;
+    }
+}

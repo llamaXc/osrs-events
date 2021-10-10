@@ -1,0 +1,42 @@
+package com.osrsevents.notifications;
+
+import com.osrsevents.ApiManager;
+
+import com.osrsevents.interfaces.Sendable;
+import lombok.Setter;
+import lombok.Getter;
+
+import java.util.Map;
+
+public class LevelChangeNotification implements Sendable {
+
+    private final static String API_ENDPOINT = ApiManager.LEVEL_CHANGE_ENDPOINT;
+
+    public LevelChangeNotification(String name, Integer level, Map<String, Integer> levelMap){
+        setUpdatedSkillName(name);
+        setUpdatedSkillLevel(level);
+        setLevels(levelMap);
+    }
+
+    @Getter
+    @Setter
+    private String updatedSkillName;
+
+    @Getter
+    @Setter
+    private Integer updatedSkillLevel;
+
+    @Getter
+    @Setter
+    private Map<String, Integer> levels;
+
+    @Override
+    public EventWrapper getEventWrapper() {
+        return new EventWrapper(this);
+    }
+
+    @Override
+    public String getApiEndpoint() {
+        return API_ENDPOINT;
+    }
+}
