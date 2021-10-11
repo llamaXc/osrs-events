@@ -42,13 +42,17 @@ public class ApiManager implements ApiConnectable {
             eventWrapper.setPlayerInfo(client.getLocalPlayer().getName(), client.getLocalPlayer().getCombatLevel(), client.getLocalPlayer().getWorldLocation());
         }
 
+        UUID uuid = UUID.randomUUID();
         logger.info("Sending POST request to: " + event.getApiEndpoint());
+        logger.debug("UUID: " + uuid.toString());
+        logger.debug("Bearer: " + config.bearerToken());
+        logger.debug("JSON of event: " + eventWrapper.getJsonPayload());
 
         OkHttpClient client = new OkHttpClient();
         Request getRequest = new Request.Builder()
                 .url(config.apiEndpoint() + event.getApiEndpoint())
                 .header("Authorization", "Bearer: " + config.bearerToken())
-                .header("X-Request-Id", UUID.randomUUID().toString())
+                .header("X-Request-Id", uuid.toString())
                 .post(RequestBody.create(JSON, eventWrapper.getJsonPayload()))
                 .build();
 
@@ -61,6 +65,7 @@ public class ApiManager implements ApiConnectable {
            @Override
            public void onResponse(Call call, Response response) throws IOException {
                logger.debug("Got response from: " + event.getApiEndpoint());
+               logger.debug(response.body().toString());
                response.close();
            }
        });

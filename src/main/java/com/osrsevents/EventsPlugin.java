@@ -41,14 +41,15 @@ public class EventsPlugin extends Plugin {
 
 	private int[] lastSkillLevels;
 	private boolean hasTicked;
-	private QuestState[] lastQuestStates;
 	private boolean lastBankOpenStatus ;
-	private ItemContainer lastBankContainer;
-	private Item[] lastInvoItems;
 	private boolean hasLoggedIn = false;
+	private QuestState[] lastQuestStates;
+	private Quest[] quests;
+	private Item[] lastInvoItems;
+	private ItemContainer lastBankContainer;
 
 	private MessageHandler messageHandler;
-	private Quest[] quests;
+
 	private static final Logger logger = LoggerFactory.getLogger(EventsPlugin.class);
 
 	@Override
@@ -86,12 +87,13 @@ public class EventsPlugin extends Plugin {
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged state){
 		if(state.getGameState() == GameState.LOGIN_SCREEN){
-			logger.debug("Player is on login screen, setting up history values");
 			if(hasLoggedIn == true){
 				LoginNotification loggedOut = new LoginNotification(LOGIN_STATE.LOGGED_OUT);
 				messageHandler.sendEventNow(MESSAGE_EVENT.LOGIN, loggedOut);
 				this.hasLoggedIn = false;
 			}
+
+			logger.debug("Player is on login screen, setting up session variables");
 			this.initializeSessionVariables();
 		}
 
@@ -302,9 +304,8 @@ public class EventsPlugin extends Plugin {
 
 	private List<QuestInfo> getQuestInfoList(){
 		ArrayList<QuestInfo> questInfo = new ArrayList<>();
-		Quest[] quests = Quest.values();
 		for (Quest quest : quests){
-			questInfo.add(new QuestInfo(quest.getName(), quest.getId(), Quest.valueOf(quest.toString()).getState(client)));
+			questInfo.add(new QuestInfo(quest.getName(), quest.getId(), quest.getState(client)));
 		}
 		return questInfo;
 	}

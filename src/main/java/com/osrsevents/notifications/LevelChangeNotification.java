@@ -17,7 +17,17 @@ public class LevelChangeNotification implements Sendable {
         setUpdatedSkillName(name);
         setUpdatedSkillLevel(level);
         setLevels(levelMap);
+
+        int totalLevel = 0;
+        for(Integer skillLevel : levelMap.values()){
+            totalLevel += skillLevel;
+        }
+        this.setTotalLevel(totalLevel);
     }
+
+    @Getter
+    @Setter
+    private int totalLevel;
 
     @Getter
     @Setter

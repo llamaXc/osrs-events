@@ -10,7 +10,7 @@ Easily export your game data to an api of your choice. View the supported endpoi
 
 ## Security & Privacy
 This plugin is setup by the user. You choose where your data goes, and have varying levels of configuration.
-#### Outline of data being shared
+#### Outline of data being emitted to API
 - `OSRS in-game name, combat leve, osrs map position`: only if the Checkbox `Attach Player Info` is checked
 - `Loot received`: Npc info and loot information
 - `Level gains`: includes all levels and any level gains
@@ -96,12 +96,13 @@ This plugin is setup by the user. You choose where your data goes, and have vary
         "state": "LOGGED_IN"
     },
     "playerInfo": {
-        "combatLevel": 0,   
-        "position": {       
-            "plane": 2,     
-            "x": 3208,      
-            "y": 3220       
-        }
+        "combatLevel": 41,
+        "position": {
+            "plane": 2,
+            "x": 3208,
+            "y": 3220
+        },
+        "username": "int GIM"
     },
     "timestamp": 1633920014 
 }
@@ -129,8 +130,13 @@ This plugin is setup by the user. You choose where your data goes, and have vary
         "gePrice": 45334
     },
     "playerInfo": {
-        "username": "Zezima",
-        "combatLevel": 126
+        "combatLevel": 41,
+        "position": {
+            "plane": 2,
+            "x": 3208,
+            "y": 3220
+        },
+        "username": "int GIM"
     },
     "timestamp": 1633662492,
 }
@@ -142,6 +148,7 @@ This plugin is setup by the user. You choose where your data goes, and have vary
 * Class: `LevelChangeNotification.java`
 * Data Fields:
     - `levels: ["Fishing": 33, "Strength": 29, ... "Farming": 1]` (Always attached)
+    - `totalLevel`: (Always attached)
     - `updatedSkillLevel: 29` (Attached upon level up)
     - `updatedSkillName: "Strength"` (Attach upon level up)
     
@@ -176,11 +183,17 @@ This plugin is setup by the user. You choose where your data goes, and have vary
       "Strength": 3, 
       "Thieving": 20, 
       "Woodcutting": 50
-    }
+    },
+    "totalLevel": 546,
   }, 
   "playerInfo": {
-    "combatLevel": 5, 
-    "username": "int GIM"
+        "combatLevel": 41,
+        "position": {
+            "plane": 2,
+            "x": 3208,
+            "y": 3220
+        },
+        "username": "int GIM"
   }, 
   "timestamp": 1633662492
 }
