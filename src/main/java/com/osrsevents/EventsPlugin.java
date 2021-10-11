@@ -126,7 +126,7 @@ public class EventsPlugin extends Plugin {
 				QuestState currentQuestState = quests[i].getState(client);
 				lastQuestStates[i] = currentQuestState;
 				if(questChangeFound == false) {
-					logger.info("Detected new quest state: " + questName + " is now: " + currentQuestState.toString());
+					logger.debug("Detected new quest state: " + questName + " is now: " + currentQuestState.toString());
 					this.createAndSendQuestNotification(questName, currentQuestState);
 					questChangeFound = true;
 				}

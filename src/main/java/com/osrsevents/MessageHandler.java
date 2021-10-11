@@ -46,7 +46,7 @@ public class MessageHandler{
 
     //Used to send an event right now, no waiting around
     public void sendEventNow(MESSAGE_EVENT eventType, Sendable message){
-        logger.info("Sending event now: " + eventType.toString());
+        logger.debug("Sending event now: " + eventType.toString());
         apiConnection.send(message);
     }
 
@@ -58,7 +58,7 @@ public class MessageHandler{
 
         List<Sendable> messagesToSend = getMessagesFromQueues();
         if(messagesToSend.size() > 0){
-            logger.info("Sending message list to ApiConnectable to be sent: " + messagesToSend.size() + " messages");
+            logger.debug("Sending message list to ApiConnectable to be sent: " + messagesToSend.size() + " messages");
             apiConnection.send(messagesToSend);
         }
     }
@@ -68,7 +68,7 @@ public class MessageHandler{
         logger.debug("Attempting to insert event of type: " + eventType.toString());
         try {
            eventChannels.get(eventType).updateLatest(event);
-           logger.info("Queued " + eventType.toString() + " message to be sent");
+           logger.debug("Queued " + eventType.toString() + " message to be sent");
         }catch(Exception ex){
             logger.error(ex.getMessage());
         }

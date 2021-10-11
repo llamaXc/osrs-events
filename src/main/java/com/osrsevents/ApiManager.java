@@ -27,7 +27,7 @@ public class ApiManager implements ApiConnectable {
     public ApiManager(EventsConfig config, Client client){
         this.config = config;
         this.client = client;
-        logger.info("Created ApiConnectable ApiManager");
+        logger.debug("Created ApiConnectable ApiManager");
     }
 
     private void sendHttpPost(Sendable event){
@@ -43,7 +43,7 @@ public class ApiManager implements ApiConnectable {
         }
 
         UUID uuid = UUID.randomUUID();
-        logger.info("Sending POST request to: " + event.getApiEndpoint());
+        logger.debug("Sending POST request to: " + event.getApiEndpoint());
         logger.debug("UUID: " + uuid.toString());
         logger.debug("Bearer: " + config.bearerToken());
         logger.debug("JSON of event: " + eventWrapper.getJsonPayload());
