@@ -8,7 +8,7 @@ import net.runelite.client.config.ConfigItem;
 public interface EventsConfig extends Config
 {
 	@ConfigItem(
-		keyName = "bearerToken",
+		keyName = "Bearer Token",
 		name = "bearerToken",
 		description = "Unique api token to provided"
 	)
@@ -18,11 +18,11 @@ public interface EventsConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "endpoint",
+			keyName = "Base Endpoint",
 			name = "endpoint",
-			description = "Endpoint to send data to"
+			description = "Endpoint to send data to: (example: http://localhost:5000/api/)"
 	)
-	default String apiEndpoint() {return null; }
+	default String apiEndpoint() {return "http://localhost:5000/api/"; }
 
 	@ConfigItem
 	(
@@ -91,4 +91,11 @@ public interface EventsConfig extends Config
 	)
 	default boolean emitQuestInfo() { return true; }
 
+	@ConfigItem(
+			position = 9,
+			keyName = "emitLoginState",
+			name = "Emit Login State",
+			description = "Sends login state"
+	)
+	default boolean emitLoginState() { return true; }
 }

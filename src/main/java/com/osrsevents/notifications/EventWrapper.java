@@ -12,8 +12,8 @@ public class EventWrapper {
 
     //Fields included in serialized event being transmitted to API
     public PlayerInfo playerInfo;
-    public long timestamp;
     public Object data;
+    public long timestamp;
 
     public EventWrapper(Object data){
         this.data = data;

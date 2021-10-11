@@ -3,25 +3,27 @@ package com.osrsevents;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 
+import com.osrsevents.enums.LOGIN_STATE;
 import com.osrsevents.interfaces.ApiConnectable;
 import com.osrsevents.interfaces.EventsConfig;
 import com.osrsevents.notifications.*;
-import com.osrsevents.pojos.BankItem;
 import com.osrsevents.enums.MESSAGE_EVENT;
 import com.osrsevents.pojos.QuestInfo;
+import com.osrsevents.utils.CommonUtility;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -37,56 +39,97 @@ public class EventsPlugin extends Plugin {
 	@Inject
 	private ItemManager itemManager;
 
-	private final int[] lastSkillLevels = new int[Skill.values().length - 1];
-	private boolean hasTicked = false;
-	private Quest[] lastQuestState;
-	private boolean lastBankOpenStatus = false;
+	private int[] lastSkillLevels;
+	private boolean hasTicked;
+	private QuestState[] lastQuestStates;
+	private boolean lastBankOpenStatus ;
 	private ItemContainer lastBankContainer;
+	private Item[] lastInvoItems;
+	private boolean hasLoggedIn = false;
+
 	private MessageHandler messageHandler;
+	private Quest[] quests;
+	private static final Logger logger = LoggerFactory.getLogger(EventsPlugin.class);
 
 	@Override
 	protected void startUp() {
+		logger.debug("Starting up");
 		ApiConnectable apiManager = new ApiManager(config, client);
 		messageHandler = new MessageHandler(apiManager);
+
+		this.initializeSessionVariables();
 	}
 
 	@Subscribe
 	public void onGameTick(final GameTick event) {
 		if(!hasTicked){
+			logger.debug("First game tick detected, handle initial events");
 			hasTicked = true;
+			this.populateCurrentQuests();
 			this.sendInitialLoginEvents();
 		}
 
-		//Detect any events which cause messages to be sent
 		this.detectQuestEvents();
 		this.detectBankWindowClosing();
 
-		//Update the message handler to fire messages
 		this.messageHandler.processGameTicks();
 	}
 
-	//Handle level/quest changes when playing on mobile, then re-logging into RuneLite.
+	private void initializeSessionVariables(){
+		lastSkillLevels = new int[Skill.values().length - 1];
+		hasTicked = false;
+		lastQuestStates = new QuestState[Quest.values().length];
+		lastBankOpenStatus = false;
+		quests = Quest.values();
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged state){
+		if(state.getGameState() == GameState.LOGIN_SCREEN){
+			logger.debug("Player is on login screen, setting up history values");
+			if(hasLoggedIn == true){
+				LoginNotification loggedOut = new LoginNotification(LOGIN_STATE.LOGGED_OUT);
+				messageHandler.sendEventNow(MESSAGE_EVENT.LOGIN, loggedOut);
+				this.hasLoggedIn = false;
+			}
+			this.initializeSessionVariables();
+		}
+
+		if(state.getGameState() == GameState.LOGGED_IN){
+			this.hasLoggedIn = true;
+			LoginNotification loggedIn = new LoginNotification((LOGIN_STATE.LOGGED_IN));
+			messageHandler.sendEventNow(MESSAGE_EVENT.LOGIN, loggedIn);
+		}
+	}
+
 	private void sendInitialLoginEvents(){
-		this.createAndQueueLevelNotification(null, null);
+		logger.debug("Sending initial level and quest notifications");
+		this.createAndSendLevelNotification(null, null);
+		this.createAndSendQuestNotification(null, null);
+	}
+
+	private void populateCurrentQuests(){
+		logger.debug("Populating quest states with latest player states");
+		for (int i = 0; i < quests.length; i++){
+			QuestState currentQuestState = quests[i].getState(client);
+			lastQuestStates[i] = currentQuestState;
+		}
 	}
 
 	private void detectQuestEvents(){
-		if(lastQuestState == null){
-			lastQuestState = Quest.values();
-			this.createAndQueueQuestStatusNotification(null, null);
-			return;
-		}
-
-		Quest[] curQuestState = Quest.values();
-		for (int i = 0; i < curQuestState.length; i++){
-			if(lastQuestState[i].getState(client) != curQuestState[i].getState(client)){
-				String questName =curQuestState[i].getName();
-				QuestState questState = curQuestState[i].getState(client);
-				this.createAndQueueQuestStatusNotification(questName, questState);
+		boolean questChangeFound = false;
+		for (int i = 0; i < quests.length; i++){
+			if(lastQuestStates[i] != quests[i].getState(client)){
+				String questName =quests[i].getName();
+				QuestState currentQuestState = quests[i].getState(client);
+				lastQuestStates[i] = currentQuestState;
+				if(questChangeFound == false) {
+					logger.info("Detected new quest state: " + questName + " is now: " + currentQuestState.toString());
+					this.createAndSendQuestNotification(questName, currentQuestState);
+					questChangeFound = true;
+				}
 			}
 		}
-
-		lastQuestState = curQuestState;
 	}
 
 	private void detectBankWindowClosing(){
@@ -96,6 +139,7 @@ public class EventsPlugin extends Plugin {
 			lastBankContainer = client.getItemContainer(InventoryID.BANK);
 		}else if(lastBankOpenStatus){
 			lastBankOpenStatus = false;
+			logger.debug("Detected closing of bank window. Preparing bank notification");
 			this.createAndQueueBankNotification();
 		}
 	}
@@ -103,18 +147,34 @@ public class EventsPlugin extends Plugin {
 	@Subscribe
 	public void onItemContainerChanged(final ItemContainerChanged event) {
 		if (event.getItemContainer() == client.getItemContainer(InventoryID.EQUIPMENT)) {
+			logger.debug("Detected ItemContainer change for EQUIPMENT, preparing to queue event");
 			this.createAndQueueEquipmentNotification(event.getItemContainer().getItems());
 		}
 
 		if(event.getItemContainer() == client.getItemContainer(InventoryID.INVENTORY)){
-			this.createAndQueueInvoNotification(event.getItemContainer().getItems());
+
+			//When first logging in, set the inventory container and fire off an event to load first inventory
+			if(lastInvoItems == null){
+				logger.debug("First time seeing inventory event, prepare to create first Inventory Notification");
+				lastInvoItems = event.getItemContainer().getItems();
+				this.createAndQueueInvoNotification(lastInvoItems);
+				return;
+			}
+
+			ItemContainer currentContainer = event.getItemContainer();
+			boolean containersEqual = CommonUtility.areItemContainerEqual(lastInvoItems, currentContainer.getItems());
+			if(containersEqual == false) {
+				logger.debug("Detected changed inventory, prepare to create latest Inventory Notification");
+				this.createAndQueueInvoNotification(event.getItemContainer().getItems());
+				lastInvoItems = currentContainer.getItems();
+			}
 		}
 	}
 
 	@Subscribe
 	public void onNpcLootReceived(final NpcLootReceived npcLootReceived) {
-		NpcKillNotification notification = new NpcKillNotification(npcLootReceived);
-		messageHandler.insertMessage(MESSAGE_EVENT.LOOT, notification);
+		logger.debug("Detected npcLootReceived from npc with id: " + npcLootReceived.getNpc().getId() +" , preparing to send event");
+		this.createAndSendLootNotification(npcLootReceived);
 	}
 
 	@Subscribe
@@ -127,9 +187,23 @@ public class EventsPlugin extends Plugin {
 		lastSkillLevels[skillIdx] = currentLevel;
 		boolean didLevel = lastLevel != 0 && currentLevel > lastLevel;
 
+		//Only send level stat changes after initial events have sent
 		if(didLevel && hasTicked){
-			this.createAndQueueLevelNotification(updatedSkill.getName(), currentLevel);
+			logger.debug("Level up detected, preparing to queue event: " + updatedSkill.getName() + " lvl: " +  currentLevel);
+			this.createAndSendLevelNotification(updatedSkill.getName(), currentLevel);
 		}
+	}
+
+	private void createAndSendLootNotification(NpcLootReceived lootReceived){
+		int geTotalPrice = 0;
+		int npcId = lootReceived.getNpc().getId();
+		List<Item> items = new ArrayList<>();
+		for(ItemStack item : lootReceived.getItems()){
+			items.add(new Item(item.getId(), item.getQuantity()));
+			geTotalPrice += item.getQuantity() * itemManager.getItemComposition(item.getId()).getPrice();
+		}
+		NpcKillNotification notification = new NpcKillNotification(npcId, items, geTotalPrice);
+		messageHandler.sendEventNow(MESSAGE_EVENT.LOOT, notification);
 	}
 
 	private void createAndQueueBankNotification(){
@@ -138,55 +212,64 @@ public class EventsPlugin extends Plugin {
 			return;
 		}
 
-		//Extract items and build List of bankItems for the API
 		Item[] bankItems = lastBankContainer.getItems();
-		List<BankItem> items = new ArrayList<>();
+		List<Item> items = new ArrayList<>();
 		int totalPrice = 0;
 
-		for(int i = 0; i < bankItems.length; i++){
-			Item curItem = bankItems[i];
+		for(Item bankItem : bankItems){
 
 			//Don't add empty/removed items, we only want the current items in the bank to be sent
-			if(curItem.getId() <= 0){
+			if(bankItem.getId() <= 0){
 				continue;
 			}
-			int quantity = curItem.getQuantity();
-			int id = curItem.getId();
+			int quantity = bankItem.getQuantity();
+			int id = bankItem.getId();
 			int gePrice = quantity * itemManager.getItemComposition(id).getPrice();
 			totalPrice += gePrice;
-			BankItem item = new BankItem(i, quantity, id);
-			items.add(item);
+			items.add(bankItem);
 		}
 
+		logger.debug("Preparing to send bank notification to message handler");
 		BankNotification bankNotification = new BankNotification(items, totalPrice);
-		messageHandler.insertMessage(MESSAGE_EVENT.BANK, bankNotification);
+		messageHandler.updateLatestEvent(MESSAGE_EVENT.BANK, bankNotification);
 	}
 
-	private void createAndQueueLevelNotification(String name, Integer level){
+	private void createAndSendLevelNotification(String name, Integer level){
+		logger.debug("Preparing to send level notification to message handler");
 		Map<String, Integer> levelMap = this.getLevelMap();
 		LevelChangeNotification levelEvent = new LevelChangeNotification(name, level, levelMap);
-		messageHandler.insertMessage(MESSAGE_EVENT.LEVEL, levelEvent);
+		messageHandler.sendEventNow(MESSAGE_EVENT.LEVEL, levelEvent);
 	}
 
-	private void createAndQueueQuestStatusNotification(String quest, QuestState state){
+	private void createAndSendQuestNotification(String quest, QuestState state){
+		logger.debug("Preparing to send quest status to message handler");
 		List<QuestInfo> quests = this.getQuestInfoList();
 		QuestChangeNotification questEvent = new QuestChangeNotification(quest, state, quests, client.getVar(VarPlayer.QUEST_POINTS));
-		messageHandler.insertMessage(MESSAGE_EVENT.QUEST, questEvent);
+		messageHandler.sendEventNow(MESSAGE_EVENT.QUEST, questEvent);
 	}
 
 	private void createAndQueueInvoNotification(Item[] invoItems){
-		Map<Integer, Item> items = new HashMap<>();
-		for (int i = 0; i < invoItems.length; i++){
-			if(invoItems[i].getId() > 0 && invoItems[i].getQuantity() > 0) {
-				items.put(i, invoItems[i]);
+		logger.debug("Preparing to send inventory notification to message handler");
+		List<Item> inventoryItems = new ArrayList<>();
+		final int MAX_INVO_SLOTS = 28;
+		int geTotalPrice = 0;
+		for (int i = 0; i < MAX_INVO_SLOTS; i++){
+			if(i > invoItems.length - 1){
+				inventoryItems.add(new Item(0,0));
+			}else if(invoItems[i].getId() > 0 && invoItems[i].getQuantity() > 0) {
+				geTotalPrice += invoItems[i].getQuantity() * itemManager.getItemComposition(invoItems[i].getId()).getPrice();
+				inventoryItems.add(invoItems[i]);
+			}else{
+				inventoryItems.add(new Item(0, 0));
 			}
 		}
 
-		InventorySlotsNotification invoEvent = new InventorySlotsNotification(items);
-		messageHandler.insertMessage(MESSAGE_EVENT.INVO, invoEvent);
+		InventorySlotsNotification invoEvent = new InventorySlotsNotification(inventoryItems, geTotalPrice);
+		messageHandler.updateLatestEvent(MESSAGE_EVENT.INVO, invoEvent);
 	}
 
 	private void createAndQueueEquipmentNotification(Item[] equippedItems){
+		logger.debug("Preparing to send equipment notification to message handler");
 		EquipmentInventorySlot[] slots = EquipmentInventorySlot.values();
 		Map<EquipmentInventorySlot, Item> equipped = new HashMap<>();
 
@@ -205,7 +288,7 @@ public class EventsPlugin extends Plugin {
 		}
 
 		EquipSlotsNotification equipEvent = new EquipSlotsNotification(equipped);
-		messageHandler.insertMessage(MESSAGE_EVENT.EQUIPMENT, equipEvent);
+		messageHandler.updateLatestEvent(MESSAGE_EVENT.EQUIPMENT, equipEvent);
 	}
 
 	private Map<String, Integer> getLevelMap(){

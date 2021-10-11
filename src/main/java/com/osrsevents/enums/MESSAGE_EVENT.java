@@ -6,5 +6,6 @@ public enum MESSAGE_EVENT {
     INVO,
     EQUIPMENT,
     QUEST,
-    LOOT
+    LOOT,
+    LOGIN
 }

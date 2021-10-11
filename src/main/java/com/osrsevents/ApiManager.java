@@ -5,6 +5,7 @@ import com.osrsevents.interfaces.EventsConfig;
 import com.osrsevents.interfaces.Sendable;
 import com.osrsevents.notifications.*;
 import net.runelite.api.Client;
+import java.util.UUID;
 
 import okhttp3.*;
 
@@ -17,12 +18,6 @@ import java.util.List;
 public class ApiManager implements ApiConnectable {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiManager.class);
-    public static final String NPC_KILL_ENDPOINT = "npc_kill/";
-    public static final String LEVEL_CHANGE_ENDPOINT = "level_change/";
-    public static final String QUEST_POINT_ENDPOINT = "quest_change/";
-    public static final String EQUIPPED_ITEMS_ENDPOINT = "equipped_items/";
-    public static final String INVENTORY_SLOT_ENDPOINT = "inventory_items/";
-    public static final String BANK_ENDPOINT = "bank/";
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -32,9 +27,10 @@ public class ApiManager implements ApiConnectable {
     public ApiManager(EventsConfig config, Client client){
         this.config = config;
         this.client = client;
+        logger.info("Created ApiConnectable ApiManager");
     }
 
-    private void send(Sendable event){
+    private void sendHttpPost(Sendable event){
 
         if (!canSend(event)){
             return;
@@ -42,17 +38,17 @@ public class ApiManager implements ApiConnectable {
 
         EventWrapper eventWrapper = event.getEventWrapper();
 
-        //Extract displayName and combatLevel to send with the event
         if(config.emitAttachPlayerInfo() && client.getLocalPlayer() != null){
             eventWrapper.setPlayerInfo(client.getLocalPlayer().getName(), client.getLocalPlayer().getCombatLevel(), client.getLocalPlayer().getWorldLocation());
         }
 
-        logger.info(eventWrapper.getJsonPayload()) ;
+        logger.info("Sending POST request to: " + event.getApiEndpoint());
 
         OkHttpClient client = new OkHttpClient();
         Request getRequest = new Request.Builder()
                 .url(config.apiEndpoint() + event.getApiEndpoint())
                 .header("Authorization", "Bearer: " + config.bearerToken())
+                .header("X-Request-Id", UUID.randomUUID().toString())
                 .post(RequestBody.create(JSON, eventWrapper.getJsonPayload()))
                 .build();
 
@@ -64,7 +60,8 @@ public class ApiManager implements ApiConnectable {
 
            @Override
            public void onResponse(Call call, Response response) throws IOException {
-               logger.info("Got response");
+               logger.debug("Got response from: " + event.getApiEndpoint());
+               response.close();
            }
        });
     }
@@ -101,18 +98,26 @@ public class ApiManager implements ApiConnectable {
             return config.emitQuestInfo();
         }
 
+        if (event instanceof LoginNotification){
+            return config.emitLoginState();
+        }
+
         return true;
     }
 
     @Override
     public void init() {
-        System.out.println("Initing sendable interface");
+    }
+
+    @Override
+    public void send(Sendable message){
+        this.sendHttpPost(message);
     }
 
     @Override
     public void send(List<Sendable> messages) {
         for(Sendable message : messages){
-            this.send(message);
+            this.sendHttpPost(message);
         }
     }
 }

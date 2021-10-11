@@ -1,30 +1,22 @@
 package com.osrsevents.notifications;
 
 import com.osrsevents.ApiManager;
+import com.osrsevents.enums.LOGIN_STATE;
 import com.osrsevents.interfaces.Sendable;
 import com.osrsevents.utils.Endpoint;
 import lombok.Getter;
 import lombok.Setter;
-import net.runelite.api.Item;
 
-import java.util.List;
+public class LoginNotification implements Sendable {
+    private static final String API_ENDPOINT = Endpoint.LOGIN_NOTIFICATION;
 
-public class BankNotification implements Sendable {
-
-    private static final String API_ENDPOINT = Endpoint.BANK_ENDPOINT;
-
-    public BankNotification(List<Item> items, int totalPrice){
-        setItems(items);
-        setValue(totalPrice);
+    public LoginNotification(LOGIN_STATE state){
+        this.setState(state);
     }
 
     @Getter
     @Setter
-    private int value;
-
-    @Getter
-    @Setter
-    private List<Item> items;
+    private LOGIN_STATE state;
 
     @Override
     public EventWrapper getEventWrapper() {

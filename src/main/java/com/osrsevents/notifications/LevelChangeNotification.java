@@ -3,6 +3,7 @@ package com.osrsevents.notifications;
 import com.osrsevents.ApiManager;
 
 import com.osrsevents.interfaces.Sendable;
+import com.osrsevents.utils.Endpoint;
 import lombok.Setter;
 import lombok.Getter;
 
@@ -10,7 +11,7 @@ import java.util.Map;
 
 public class LevelChangeNotification implements Sendable {
 
-    private final static String API_ENDPOINT = ApiManager.LEVEL_CHANGE_ENDPOINT;
+    private final static String API_ENDPOINT = Endpoint.LEVEL_CHANGE_ENDPOINT;
 
     public LevelChangeNotification(String name, Integer level, Map<String, Integer> levelMap){
         setUpdatedSkillName(name);

@@ -3,6 +3,7 @@ package com.osrsevents.notifications;
 import com.osrsevents.ApiManager;
 import com.osrsevents.interfaces.Sendable;
 import com.osrsevents.pojos.QuestInfo;
+import com.osrsevents.utils.Endpoint;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.QuestState;
@@ -10,7 +11,7 @@ import net.runelite.api.QuestState;
 import java.util.List;
 
 public class QuestChangeNotification implements Sendable {
-    private final static String API_ENDPOINT = ApiManager.QUEST_POINT_ENDPOINT;
+    private final static String API_ENDPOINT = Endpoint.QUEST_POINT_ENDPOINT;
 
     public QuestChangeNotification(String quest, QuestState state, List<QuestInfo> quests, int qp){
         setQp(qp);

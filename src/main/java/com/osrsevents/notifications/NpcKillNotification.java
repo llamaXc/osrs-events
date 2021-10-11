@@ -1,30 +1,22 @@
 package com.osrsevents.notifications;
 
-import com.osrsevents.ApiManager;
 import com.osrsevents.interfaces.Sendable;
+import com.osrsevents.utils.Endpoint;
 import lombok.Getter;
 import lombok.Setter;
-import net.runelite.client.events.NpcLootReceived;
-import net.runelite.client.game.ItemStack;
-import com.osrsevents.pojos.LootItem;
-import java.util.ArrayList;
-import java.util.Collection;
+import net.runelite.api.Item;
+
 import java.util.List;
 
 public class NpcKillNotification implements Sendable {
 
-    private final static String API_ENDPOINT = ApiManager.NPC_KILL_ENDPOINT;
+    private final static String API_ENDPOINT = Endpoint.NPC_KILL_ENDPOINT;
 
-    public NpcKillNotification(NpcLootReceived npcLoot){
-        super();
+    public NpcKillNotification(int npcId, List<Item> items, int gePrice){
 
-        setNpcId(npcLoot.getNpc().getId());
-        Collection<ItemStack> droppedItems = npcLoot.getItems();
-        items = new ArrayList<>();
-        for(ItemStack stack : droppedItems){
-            LootItem loot = new LootItem(stack.getId(), stack.getQuantity());
-            items.add(loot);
-        }
+        this.setNpcId(npcId);
+        this.setItems(items);
+        this.setGePrice(gePrice);
     }
 
     public String getApiEndpoint(){
@@ -34,9 +26,13 @@ public class NpcKillNotification implements Sendable {
 
     @Getter
     @Setter
+    private int gePrice;
+
+    @Getter
+    @Setter
     private int npcId;
 
     @Getter
     @Setter
-    private List<LootItem> items;
+    private List<Item> items;
 }
