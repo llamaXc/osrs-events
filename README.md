@@ -1,6 +1,6 @@
 # OSRSEvents
 Easily export your game data to an api of your choice. View the supported endpoints below and get started today.
-- *Coming Soon: Managed Service to view OSRS activity and track progress*
+- https://osrssocial.com
 
 ## How to use???
 - Install via Plugin Hub in RuneLite
