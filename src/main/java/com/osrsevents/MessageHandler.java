@@ -23,9 +23,9 @@ public class MessageHandler{
 
         //Events which are 'latest only' are sent every X game ticks when often updates are occuring
         //Other events use the sendEventNow function if they are time important, such as Level Ups, Quest Completes, etc
-        eventChannels.put(MESSAGE_EVENT.BANK, new MessageChannel(secondsToGameTicks(20)));
-        eventChannels.put(MESSAGE_EVENT.INVO, new MessageChannel(secondsToGameTicks(20)));
-        eventChannels.put(MESSAGE_EVENT.EQUIPMENT, new MessageChannel(secondsToGameTicks(20)));
+        eventChannels.put(MESSAGE_EVENT.BANK, new MessageChannel(secondsToGameTicks(10)));
+        eventChannels.put(MESSAGE_EVENT.INVO, new MessageChannel(secondsToGameTicks(2)));
+        eventChannels.put(MESSAGE_EVENT.EQUIPMENT, new MessageChannel(secondsToGameTicks(2)));
     }
 
     private int secondsToGameTicks(int seconds){
