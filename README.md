@@ -1,6 +1,5 @@
 # OSRSEvents
-Easily export your game data to an api of your choice. View the supported endpoints below and get started today.
-- https://osrssocial.com
+
 
 ## How to use???
 - Install via Plugin Hub in RuneLite
