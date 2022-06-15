@@ -218,15 +218,19 @@ public class EventsPlugin extends Plugin {
 		List<Item> items = new ArrayList<>();
 		int totalPrice = 0;
 
+
 		for(Item bankItem : bankItems){
 
-			//Don't add empty/removed items, we only want the current items in the bank to be sent
-			if(bankItem.getId() <= 0){
-				continue;
-			}
-			int quantity = bankItem.getQuantity();
 			int id = bankItem.getId();
-			int gePrice = quantity * itemManager.getItemComposition(id).getPrice();
+			int quantity = bankItem.getQuantity();
+			ItemComposition itemComp = itemManager.getItemComposition(id);
+
+			boolean isPlaceholder = itemComp.getPlaceholderTemplateId() == 14401;
+			if (isPlaceholder) {
+				quantity = 0;
+			}
+
+			int gePrice = quantity * itemComp.getPrice();
 			totalPrice += gePrice;
 			items.add(bankItem);
 		}
