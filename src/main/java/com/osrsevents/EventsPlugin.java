@@ -8,6 +8,7 @@ import com.osrsevents.interfaces.ApiConnectable;
 import com.osrsevents.interfaces.EventsConfig;
 import com.osrsevents.notifications.*;
 import com.osrsevents.enums.MESSAGE_EVENT;
+import com.osrsevents.pojos.BankItem;
 import com.osrsevents.pojos.QuestInfo;
 import com.osrsevents.utils.CommonUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -215,16 +216,21 @@ public class EventsPlugin extends Plugin {
 		}
 
 		Item[] bankItems = lastBankContainer.getItems();
-		List<Item> items = new ArrayList<>();
+		List<BankItem> items = new ArrayList<>();
 		int totalPrice = 0;
 
-
 		for(Item bankItem : bankItems){
-
 			int id = bankItem.getId();
+
+			// Skip invalid item ids
+			if (id <= -1){
+				continue;
+			}
+
 			int quantity = bankItem.getQuantity();
 			ItemComposition itemComp = itemManager.getItemComposition(id);
 
+			// Handle placeholder quantity
 			boolean isPlaceholder = itemComp.getPlaceholderTemplateId() == 14401;
 			if (isPlaceholder) {
 				quantity = 0;
@@ -232,7 +238,9 @@ public class EventsPlugin extends Plugin {
 
 			int gePrice = quantity * itemComp.getPrice();
 			totalPrice += gePrice;
-			items.add(bankItem);
+
+			BankItem bankItemToAdd = new BankItem(id, quantity);
+			items.add(bankItemToAdd);
 		}
 
 		logger.debug("Preparing to send bank notification to message handler");

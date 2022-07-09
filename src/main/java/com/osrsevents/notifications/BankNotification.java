@@ -2,10 +2,10 @@ package com.osrsevents.notifications;
 
 import com.osrsevents.ApiManager;
 import com.osrsevents.interfaces.Sendable;
+import com.osrsevents.pojos.BankItem;
 import com.osrsevents.utils.Endpoint;
 import lombok.Getter;
 import lombok.Setter;
-import net.runelite.api.Item;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class BankNotification implements Sendable {
 
     private static final String API_ENDPOINT = Endpoint.BANK_ENDPOINT;
 
-    public BankNotification(List<Item> items, int totalPrice){
+    public BankNotification(List<BankItem> items, int totalPrice){
         setItems(items);
         setValue(totalPrice);
     }
@@ -24,7 +24,7 @@ public class BankNotification implements Sendable {
 
     @Getter
     @Setter
-    private List<Item> items;
+    private List<BankItem> items;
 
     @Override
     public EventWrapper getEventWrapper() {
