@@ -204,6 +204,7 @@ This plugin is setup by the user. You choose where your data goes, and have vary
 * Class: `BankNotification.java`
 * Data Fields:
     - `items: [{id: 1, quantity: 1}, ....]` (Always attached, in order of players bank)
+    -  `quantity` is 0 if the item is a placeholder. Thus price is also 0 while the item is out of the bank.
     - `value: 68802` (Always attached, GE Price bank value)
    
 * Triggered: when bank is X'ed out of in game, sent every 20 seconds when frequent update detected.
