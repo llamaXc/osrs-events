@@ -12,10 +12,13 @@ import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 
 public class ApiManager implements ApiConnectable {
+
+    private @Inject OkHttpClient httpClient;
 
     private static final Logger logger = LoggerFactory.getLogger(ApiManager.class);
 
@@ -24,9 +27,10 @@ public class ApiManager implements ApiConnectable {
     private EventsConfig config;
     private final Client client;
 
-    public ApiManager(EventsConfig config, Client client){
+    public ApiManager(EventsConfig config, Client client, OkHttpClient httpClient){
         this.config = config;
         this.client = client;
+        this.httpClient = httpClient;
         logger.debug("Created ApiConnectable ApiManager");
     }
 
@@ -48,7 +52,6 @@ public class ApiManager implements ApiConnectable {
         logger.debug("Bearer: " + config.bearerToken());
         logger.debug("JSON of event: " + eventWrapper.getJsonPayload());
 
-        OkHttpClient client = new OkHttpClient();
         Request getRequest = new Request.Builder()
                 .url(config.apiEndpoint() + event.getApiEndpoint())
                 .header("Authorization", "Bearer: " + config.bearerToken())
@@ -56,7 +59,7 @@ public class ApiManager implements ApiConnectable {
                 .post(RequestBody.create(JSON, eventWrapper.getJsonPayload()))
                 .build();
 
-        client.newCall(getRequest).enqueue(new Callback() {
+        this.httpClient.newCall(getRequest).enqueue(new Callback() {
            @Override
            public void onFailure(Call call, IOException e) {
                e.printStackTrace();
