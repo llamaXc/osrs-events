@@ -23,6 +23,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,10 @@ import java.util.*;
 @Slf4j
 @PluginDescriptor(name = "OSRSEvents")
 public class EventsPlugin extends Plugin {
+
+	@Inject
+	private OkHttpClient httpClient;
+
 	@Inject
 	private Client client;
 
@@ -56,7 +61,7 @@ public class EventsPlugin extends Plugin {
 	@Override
 	protected void startUp() {
 		logger.debug("Starting up");
-		ApiConnectable apiManager = new ApiManager(config, client);
+		ApiConnectable apiManager = new ApiManager(config, client, httpClient);
 		messageHandler = new MessageHandler(apiManager);
 
 		this.initializeSessionVariables();
@@ -258,7 +263,8 @@ public class EventsPlugin extends Plugin {
 	private void createAndSendQuestNotification(String quest, QuestState state){
 		logger.debug("Preparing to send quest status to message handler");
 		List<QuestInfo> quests = this.getQuestInfoList();
-		QuestChangeNotification questEvent = new QuestChangeNotification(quest, state, quests, client.getVar(VarPlayer.QUEST_POINTS));
+		int QuestPointsVarp = VarPlayer.QUEST_POINTS.getId();
+		QuestChangeNotification questEvent = new QuestChangeNotification(quest, state, quests, client.getVarpValue(QuestPointsVarp));
 		messageHandler.sendEventNow(MESSAGE_EVENT.QUEST, questEvent);
 	}
 
