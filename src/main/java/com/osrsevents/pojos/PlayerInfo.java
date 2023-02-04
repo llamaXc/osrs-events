@@ -15,11 +15,16 @@ public class PlayerInfo {
 
     @Getter
     @Setter
+    private int membershipDays;
+
+    @Getter
+    @Setter
     private WorldPoint position;
 
-    public PlayerInfo(String username, int combatLevel, WorldPoint pos){
+    public PlayerInfo(String username, int combatLevel, int membershipDays, WorldPoint pos){
         this.username = username;
         this.combatLevel = combatLevel;
+        this.membershipDays = membershipDays;
         this.position = pos;
     }
 

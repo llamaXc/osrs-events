@@ -7,6 +7,7 @@ import com.osrsevents.notifications.*;
 import net.runelite.api.Client;
 import java.util.UUID;
 
+import net.runelite.api.VarPlayer;
 import okhttp3.*;
 
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class ApiManager implements ApiConnectable {
         EventWrapper eventWrapper = event.getEventWrapper();
 
         if(config.emitAttachPlayerInfo() && client.getLocalPlayer() != null){
-            eventWrapper.setPlayerInfo(client.getLocalPlayer().getName(), client.getLocalPlayer().getCombatLevel(), client.getLocalPlayer().getWorldLocation());
+            eventWrapper.setPlayerInfo(client.getLocalPlayer().getName(), client.getLocalPlayer().getCombatLevel(), client.getVarpValue(VarPlayer.MEMBERSHIP_DAYS), client.getLocalPlayer().getWorldLocation());
         }
 
         UUID uuid = UUID.randomUUID();
