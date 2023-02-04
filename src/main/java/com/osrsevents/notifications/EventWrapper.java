@@ -22,8 +22,7 @@ public class EventWrapper {
         this.timestamp = Instant.now().getEpochSecond();
     }
 
-    public String getJsonPayload(){
-        Gson gson = new Gson();
+    public String getJsonPayload() {
         return gson.toJson(this);
     }
 
